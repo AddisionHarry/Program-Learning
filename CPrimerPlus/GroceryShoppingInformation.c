@@ -204,7 +204,7 @@ void Product_Information_Calculate(Shopping_Information_Structure *InitStructure
  */
 void Print_Product_Information(Shopping_Information_Structure *InitStructure)
 {
-    printf("Purchased Products:\n");
+    printf("\n\nPurchased Products:\n");
 
     printf("%25s  %9s($/pounds)%8s%7s\n", "ProductName", "UnitPrice", "Weight", "Price");
     printf("%25s       %6.3f         %7.1f %6.1f\n", "Artichoke",
