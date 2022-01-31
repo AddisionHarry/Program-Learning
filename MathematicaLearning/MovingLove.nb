@@ -1,0 +1,105 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      3311,         97]
+NotebookOptionsPosition[      2725,         78]
+NotebookOutlinePosition[      3141,         95]
+CellTagsIndexPosition[      3098,         92]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.8328243957730756`*^9, 
+  3.8328243993846684`*^9}},ExpressionUUID->"aba1ebf3-a4f5-42e7-8cdd-\
+429c71deb24f"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<C:\\\\Users\\\\cc\\\\Desktop\\\\Learning\\\\\:672c\:79d1\:8bfe\:7a0b\
+\:5b66\:4e60\\\\\:6570\:5b66\\\\matlab or mathematica\\\\Moving_Lovings.gif\>\
+\"", ",", 
+    RowBox[{"Manipulate", "[", 
+     RowBox[{
+      RowBox[{"Plot", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{
+           SuperscriptBox[
+            RowBox[{"(", 
+             RowBox[{"Abs", "[", 
+              RowBox[{"2", "x"}], "]"}], ")"}], 
+            FractionBox["2", "3"]], "+", 
+           RowBox[{"0.9", "*", 
+            RowBox[{"Sqrt", "[", 
+             RowBox[{"8", "-", 
+              RowBox[{"4", 
+               SuperscriptBox["x", "2"]}]}], "]"}], "*", 
+            RowBox[{"Sin", "[", 
+             RowBox[{"a", "*", "Pi", "*", "2", "x"}], "]"}]}]}], ",", 
+          RowBox[{"-", "3"}], ",", "4"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"x", ",", 
+          RowBox[{"-", "1.75"}], ",", "1.75"}], "}"}], ",", 
+        RowBox[{"PlotRange", "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "2.5"}], ",", "3.7"}], "}"}]}], ",", 
+        RowBox[{"PlotStyle", "\[Rule]", "Pink"}]}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"a", ",", "0", ",", "20"}], "}"}]}], "]"}]}], "]"}], 
+  "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{
+  3.832751567456142*^9, {3.832751605853873*^9, 3.832751636843729*^9}, {
+   3.832752267011201*^9, 3.832752275352257*^9}, {3.832752388684901*^9, 
+   3.832752432272938*^9}, {3.8328244369992514`*^9, 3.832824476458107*^9}},
+ CellLabel->"In[3]:=",ExpressionUUID->"fa693395-97fb-419b-83b6-d7826c9a8c17"],
+
+Cell[BoxData["\<\"C:\\\\Users\\\\cc\\\\Desktop\\\\Learning\\\\\:672c\:79d1\
+\:8bfe\:7a0b\:5b66\:4e60\\\\\:6570\:5b66\\\\matlab or \
+mathematica\\\\Moving_Lovings.gif\"\>"], "Output",
+ CellChangeTimes->{3.8328245025101476`*^9},
+ CellLabel->"Out[3]=",ExpressionUUID->"5cd61262-212f-4b95-b0de-7d81a784cbd2"]
+}, Open  ]]
+},
+WindowSize->{950.25, 528.75},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (2020\:5e743\:670814\
+\:65e5)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"55be48a8-8b81-45c1-b261-231a8222d3eb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 156, 3, 28, "Input",ExpressionUUID->"aba1ebf3-a4f5-42e7-8cdd-429c71deb24f"],
+Cell[CellGroupData[{
+Cell[739, 27, 1663, 42, 167, "Input",ExpressionUUID->"fa693395-97fb-419b-83b6-d7826c9a8c17"],
+Cell[2405, 71, 304, 4, 32, "Output",ExpressionUUID->"5cd61262-212f-4b95-b0de-7d81a784cbd2"]
+}, Open  ]]
+}
+]
+*)
+
