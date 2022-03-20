@@ -2,7 +2,7 @@
 
 int main()
 {
-    const volatile int a = 1;
+    const int a = 1;
     int *b = (int *)&a;
     *b = 2;
 
