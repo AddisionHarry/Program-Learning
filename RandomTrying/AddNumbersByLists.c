@@ -13,7 +13,7 @@
  * 每个链表中的节点数在范围 [1, 100] 内
  * 0 <= Node.val <= 9
  * 题目数据保证列表表示的数字不含前导零
- * @author fwlh
+ * @author lh
  * @version 1.0
  * @date 2022-04-18
  *
@@ -33,7 +33,7 @@ struct ListNode
 
 /**
  * @brief 获取链表的长度
- * @author fwlh
+ * @author lh
  * @param  list             链表头
  * @return int              长度
  */
@@ -50,7 +50,7 @@ int GetLen(struct ListNode *list)
 
 /**
  * @brief 将两个链表代表的数字相加返回一个新的链表
- * @author fwlh
+ * @author lh
  * @param  l1               待计算的链表
  * @param  l2               待计算的链表
  * @return struct ListNode* 计算结束的链表

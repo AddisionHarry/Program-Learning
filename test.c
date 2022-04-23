@@ -1,78 +1,37 @@
 #include <stdio.h>
 
-int romanToInt(char *s)
+int mySqrt(int x)
 {
-    int index = 0, result = 0;
-    while (1)
+    if (0 == x)
+        return 0;
+    if (x < 4)
+        return 1;
+    if (x < 9)
+        return 2;
+    if (x < 16)
+        return 3;
+    if (x < 25)
+        return 4;
+    if (x < 36)
+        return 5;
+
+    int x0 = x / 6, last = 0;
+    while (!((x0 - x / x0 <= 0) && (x0 + 1 - x / (x0 + 1) > 0)))
     {
-        switch (s[index])
-        {
-        case 'I':
-            if (s[index + 1] == 'V')
-            {
-                result += 4;
-                ++index;
-            }
-            else if (s[index + 1] == 'X')
-            {
-                result += 9;
-                ++index;
-            }
-            else
-                result += 1;
+        x0 = (int)(x0 * 0.5f + x * 0.5f / x0);
+        if (last == x0)
             break;
-        case 'V':
-            result += 5;
-            break;
-        case 'X':
-            if (s[index + 1] == 'L')
-            {
-                result += 40;
-                ++index;
-            }
-            else if (s[index + 1] == 'C')
-            {
-                result += 90;
-                ++index;
-            }
-            else
-                result += 10;
-            break;
-        case 'L':
-            result += 50;
-            break;
-        case 'C':
-            if (s[index + 1] == 'D')
-            {
-                result += 400;
-                ++index;
-            }
-            else if (s[index + 1] == 'M')
-            {
-                result += 900;
-                ++index;
-            }
-            else
-                result += 100;
-            break;
-        case 'D':
-            result += 500;
-            break;
-        case 'M':
-            result += 1000;
-            break;
-        case '\0':
-            goto RETURN;
-        }
-        ++index;
+        else
+            last = x0;
     }
-RETURN:
-    return result;
+    while (x0 - x / x0 > 0)
+        x0 -= 1;
+    return x0;
 }
 
 int main(int argc, char *argv[])
 {
-    printf("%d", romanToInt("MCMXCIV"));
+    printf("%d\n", mySqrt(2147395599));
     getchar();
     return 0;
 }
