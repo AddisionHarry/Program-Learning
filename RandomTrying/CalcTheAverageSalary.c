@@ -1,5 +1,5 @@
 /**
- * @file CalcTheRandomSalary.c
+ * @file CalcTheAverageSalary.c
  * @brief 来自 Leetcode 第 1491 题
  * 去掉最低工资和最高工资后的工资平均值
  *
