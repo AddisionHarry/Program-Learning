@@ -98,6 +98,24 @@ void Information_Data_DeInit(Information_Struct *Item)
     return;
 }
 
+// 获得链表中节点的个数
+int Get_List_Number(Information_Struct *Lists)
+{
+    if (!Lists)
+        return 0;
+    if ((Information_Struct *)Lists->List.next == Lists)
+        return 1;
+    // 因为是双向循环链表, 所以可以通过从任意节点计算一周来实现
+    int List_CNT = 1;
+    Information_Struct *CNT_List = Lists;
+    do
+    {
+        CNT_List = (Information_Struct *)CNT_List->List.next;
+        ++List_CNT;
+    } while (Lists != (Information_Struct *)CNT_List->List.next);
+    return List_CNT;
+}
+
 // 将链表中所有数据全部删除
 void Delete_All_The_Lists(void)
 {
@@ -147,8 +165,8 @@ void Export_Stored_All_Nodes(FILE *file)
     Print_Information_Table(file);
     do
     {
-        Info = (Information_Struct *)Info->List.next;
         Print_Information_Node(file, Info);
+        Info = (Information_Struct *)Info->List.next;
     } while (Info != (Information_Struct *)Start_Item);
 }
 
@@ -371,6 +389,7 @@ void Get_Name_From_CMD(Information_Struct *Item, Inquire_Condition_Enum inquire)
     }
 }
 
+bool Permit_ID_Repete = false; // 允许输入 ID 与之前重复
 // 从命令行交互获得 ID
 void Get_ID_From_CMD(Information_Struct *Item, Inquire_Condition_Enum inquire)
 {
@@ -381,7 +400,7 @@ void Get_ID_From_CMD(Information_Struct *Item, Inquire_Condition_Enum inquire)
         void *ret;
         scanf("%llu", &ID);
         fflush(stdin);
-        if ((ret = Search_Lists(Information_ID, (void *)&ID)) != NULL)
+        if (!Permit_ID_Repete && ((ret = Search_Lists(Information_ID, (void *)&ID)) != NULL))
         {
             printf("ID Number repeted!\n");
             Delete_Inquire_Result(ret);
@@ -390,6 +409,8 @@ void Get_ID_From_CMD(Information_Struct *Item, Inquire_Condition_Enum inquire)
         Item->ID = ID;
         break;
     }
+    if (Permit_ID_Repete)
+        Permit_ID_Repete = false;
 }
 
 // 从命令行交互获得性别
@@ -491,6 +512,11 @@ START_TO_DELETE:
     scanf("%llu", &delete_ID);
     fflush(stdin);
     Search_Result *ret = Search_Lists(Information_ID, &delete_ID);
+    if (!ret)
+    {
+        printf("No satisfying item found!\n");
+        return;
+    }
 RESTART_TO_CONFIRM:
     printf("Find %d item(s):\n", ret->result_numbers);
     Print_Information_Table(stdout);
@@ -569,6 +595,11 @@ MODIFY_START:
     fflush(stdin);
     if ((operator<= '0') || (operator>= '6'))
         goto MODIFY_START;
+    if (operator== '3')
+    {
+        printf("ID could not be modified.\n");
+        return;
+    }
     Get_Data_From_CMD[(operator- '1')](ret->Results->ResultNode, (Inquire_Condition_Enum)(operator- '1'));
     // 释放查询结果
     Delete_Inquire_Result(ret);
@@ -578,19 +609,20 @@ MODIFY_START:
 static int Dealwith_Search_Result(Information_Struct *TempItem, Inquire_Condition_Enum subject)
 {
     // 获得待查询项目
+    Permit_ID_Repete = true;
     Get_Data_From_CMD[subject](TempItem, subject);
     // 进行查询
     Search_Result *ret;
     switch (subject)
     {
     case Information_Name:
-        ret = Search_Lists(subject, (void *)&TempItem->Name.Name);
+        ret = Search_Lists(subject, (void *)TempItem->Name.Name);
         break;
     case Information_Gender:
         ret = Search_Lists(subject, (void *)&TempItem->Gender);
         break;
     case Information_ID:
-        ret = Search_Lists(subject, (void *)&TempItem->ID);
+        ret = Search_Lists(Information_ID, (void *)&TempItem->ID);
         break;
     case PerformanceScores_Chinese:
         ret = Search_Lists(subject, (void *)&TempItem->Scores.Chinese);
@@ -611,7 +643,7 @@ static int Dealwith_Search_Result(Information_Struct *TempItem, Inquire_Conditio
         return -1;
     }
     Print_Searched_Result(stdout, ret);
-    printf("Do you want to save the items?[Y/n]");
+    printf("Do you want to save the item(s)?[Y/n]");
     char confirm;
     scanf("%c", &confirm);
     fflush(stdin);
@@ -620,7 +652,7 @@ static int Dealwith_Search_Result(Information_Struct *TempItem, Inquire_Conditio
         // 注意释放返回值
         Delete_Inquire_Result(ret);
     RESTART_TO_EXIT:
-        printf("Go back to the main menu?[Y/n]\n");
+        printf("Go back to the main menu?[Y/n]");
         scanf("%c", &confirm);
         fflush(stdin);
         if ((confirm == 'N') || (confirm == 'n'))
@@ -655,11 +687,11 @@ void Search_Item_According_Specific_Subject(void)
 {
 SEARCH_START:
     printf("Please specify which subject to search:\n1.Name\t\t2.Gender\t3.ID\t\n4.Chinese score\t"
-           "5.Math score\t6.English Score\n");
+           "5.Math score\t6.English Score\n7.Total Score\n");
     char operator= 0;
     scanf("%c", &operator);
     fflush(stdin);
-    if ((operator<= '0') || (operator>= '6'))
+    if ((operator<= '0') || (operator>= '7'))
         goto SEARCH_START;
     // 用于查询的临时变量
     Information_Struct *TempItem = (Information_Struct *)malloc(sizeof(Information_Struct));
@@ -668,14 +700,193 @@ SEARCH_START:
         goto SEARCH_START;
 }
 
+// 将链表转化为结构体数组, 传入参数为数组地址、链表节点地址、链表节点数量
+void Convert_List_To_Array(Information_Struct Information_Array[], Information_Struct *List, int memberCNT)
+{
+    if (!Information_Array || !List)
+        return;
+    Information_Struct *TempList = List;
+    for (int index = 0; index < memberCNT; ++index)
+    {
+        if (!TempList)
+            return;
+        memcpy(&Information_Array[index], TempList, sizeof(Information_Struct));
+        TempList = (Information_Struct *)TempList->List.next;
+    }
+}
+
+// 将结构体数组转化为链表, 传入参数为数组地址、数组成员数量、是否需要反向连接
+void Convert_Array_To_List(Information_Struct Information_Array[], int memberCNT, int ToConnectInverse)
+{
+    if (!Information_Array)
+        return;
+    // 由于数组内存中的链表节点中存储了前后链表的连接关系, 因此可以通过此关系来重构链表
+    // 数组中存储的链表信息是绝对可信的, 因为它没有被修改过, 为了能够通过数组中存储的信息来访问到实际的链表
+    // 这里采用的方式是, 在数组中通过链表的 next 成员向后定位, 返回到实际链表中使用 prev 定位回来, 实现内存访问
+    // 因此修改链表时先构建 next 的单向循环链表, 然后再依此构建 prev 的循环
+    Information_Struct *TempNode;
+    for (int index = 0; index < memberCNT; ++index)
+    {
+        printf("%llu\n", Information_Array[index].ID);
+        // 通过数组成员定位链表实际地址
+        TempNode = (Information_Struct *)Information_Array[index].List.next->prev;
+        if (!index)
+            // 首个节点需要赋值给 Start_Item
+            Start_Item = (list_t *)TempNode;
+        // 否则就需要向后连接其他节点
+        if (index + 1 == memberCNT)
+            // 如果这是最后一个节点就连接回头节点
+            TempNode->List.next = Start_Item;
+        else
+            TempNode->List.next = Information_Array[index + 1].List.next->prev;
+    }
+    // 单次循环结束, 反向重新用 prev 构建出双向链表
+    TempNode = (Information_Struct *)Start_Item;
+    for (int index = 0; index < memberCNT; ++index)
+    {
+        TempNode->List.next->prev = (list_t *)TempNode;
+        TempNode = (Information_Struct *)TempNode->List.next;
+        // 如果需要反向连接, 可以在这里将循环链表的前后交换
+        if (ToConnectInverse)
+        {
+            list_t *temp = TempNode->List.next;
+            TempNode->List.next = TempNode->List.prev;
+            TempNode->List.prev = temp;
+            // 如果是第一次运行, 就修改一下起始节点, 注意这里方向已经被调换完毕
+            if (!index)
+                Start_Item = TempNode->List.next;
+        }
+    }
+}
+
 typedef enum
 {
-    Add_Item = 0, // 增加条目
-    Delete_Item,  // 删除条目
-    Show_Items,   // 展示所有条目
-    Modify_Item,  // 修改条目
-    Search_Items, // 筛选条目
-    Save_All,     // 保存当前所有
+    From_small_to_large = 0,
+    From_large_to_small
+} Arrangement_Method_Enum;                                            // 排序方式枚举
+Arrangement_Method_Enum Arrangement_Method_Now = From_small_to_large; // 当前使用的排序方式
+
+// 排序算法中需要使用到的姓名比较函数
+static int Compare_Names(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return strcmp(A->Name.Name, B->Name.Name);
+}
+// 排序算法中需要使用到的姓名比较函数
+static int Compare_ID(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    if (A->ID == B->ID)
+        return 0;
+    else if (A->ID > B->ID)
+        return -1;
+    else
+        return 1;
+}
+// 排序算法中需要使用到的性别比较函数
+static int Compare_Gender(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return ((int)B->Gender - (int)A->Gender);
+}
+// 排序算法中比较语文成绩的函数
+static int Compare_ChineseScores(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return ((int)B->Scores.Chinese - (int)A->Scores.Chinese);
+}
+// 排序算法中比较数学成绩的函数
+static int Compare_MathScores(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return ((int)B->Scores.Math - (int)A->Scores.Math);
+}
+// 排序算法中比较英语成绩的函数
+static int Compare_EnglishScores(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return ((int)B->Scores.English - (int)A->Scores.English);
+}
+// 排序算法中比较总成绩的函数
+static int Compare_TotalScores(const void *a, const void *b)
+{
+    Information_Struct *A = (Information_Struct *)a;
+    Information_Struct *B = (Information_Struct *)b;
+    return ((int)B->Scores.TotalScores - (int)A->Scores.TotalScores);
+}
+
+// 用于进行比较的函数指针数组
+int (*CompareFcn[(int)Inquire_All])(const void *a, const void *b) =
+    {[Information_Name] = Compare_Names,
+     [Information_Gender] = Compare_Gender,
+     [Information_ID] = Compare_ID,
+     [PerformanceScores_Chinese] = Compare_ChineseScores,
+     [PerformanceScores_Math] = Compare_MathScores,
+     [PerformanceScores_English] = Compare_EnglishScores,
+     [PerformanceScores_Total] = Compare_TotalScores};
+
+// 根据输入命令对记录数据进行排序
+void Rearrange_Items(void)
+{
+RESTART_TO_REARRANGE:
+    printf("Please enter the sort rule.\n1.Upon the names\t\t2.Upon the gender\n3.Upon the ID number\t\t"
+           "4.Upon the Chinese scores\n5.Upon the Math scores\t\t"
+           "6.Upon the English scores\n7.Upon the total sum scores\t8.quit\n");
+    char operator1 = 0;
+    scanf("%c", &operator1);
+    fflush(stdin);
+    if ((operator1 > '8') || (operator1 < '1'))
+        goto RESTART_TO_REARRANGE;
+    // 收到 5 就直接退出
+    if (operator1 == '8')
+        return;
+RESTART_ARRENGEMENT_WAY:
+    printf("Please enter in which way to range the items:\n");
+    if (operator1 != '2')
+        printf("1.From small to large\t2.From large to small\t3.quit\n");
+    else
+        printf("1.From female to male\t2.From male to female\t3.quit\n");
+    char operator2 = 0;
+    scanf("%c", &operator2);
+    fflush(stdin);
+    if ((operator2 > '3') || (operator2 < '1'))
+        goto RESTART_ARRENGEMENT_WAY;
+    // 收到 3 就直接退出
+    if (operator2 == '3')
+        return;
+    Arrangement_Method_Now = ((operator2 == '1') ? From_small_to_large : From_large_to_small);
+    printf("Arranging, Please wait...\n");
+    // 先计算当前有的信息数量
+    int items_cnt = Get_List_Number((Information_Struct *)Start_Item);
+    // 将链表转化为结构体数组
+    Information_Struct *Information_Array = (Information_Struct *)malloc(items_cnt * sizeof(Information_Struct));
+    Convert_List_To_Array(Information_Array, (Information_Struct *)Start_Item, items_cnt);
+    // 进行排序
+    qsort((void *)Information_Array, items_cnt, sizeof(Information_Struct), CompareFcn[operator1 - '1']);
+    // 将结构体数组重组为链表
+    Convert_Array_To_List(Information_Array, items_cnt, Arrangement_Method_Now);
+    free(Information_Array);
+    Information_Array = NULL;
+    printf("Arrange successfully!\n");
+    // 打印排序完成以后的结果
+    Print_Stored_All_Nodes();
+}
+
+typedef enum
+{
+    Add_Item = 0,  // 增加条目
+    Delete_Item,   // 删除条目
+    Show_Items,    // 展示所有条目
+    Modify_Item,   // 修改条目
+    Search_Items,  // 筛选条目
+    Save_All,      // 保存当前所有
+    Rearrangement, // 重新排序
 
     Operations_All
 } Operation_Options; // 操作选项
@@ -685,7 +896,8 @@ void (*Operations[(int)Operations_All])(void) =
      [Show_Items] = Print_Stored_All_Nodes,
      [Modify_Item] = Modify_Item_FromTheList,
      [Search_Items] = Search_Item_According_Specific_Subject,
-     [Save_All] = Store_AllData_Into_CSVFile};
+     [Save_All] = Store_AllData_Into_CSVFile,
+     [Rearrangement] = Rearrange_Items};
 
 // 主运行菜单
 void Print_Start_Menu(void)
@@ -703,16 +915,16 @@ void Print_Start_Menu(void)
         printf("\nPlease choose your operate options:\n1.Add an item\t\t\t2.Delete an item\n"
                "3.Show all the items here\t4.Change the specific item\n"
                "5.Search from the items\t\t6.Save all to CSV file\n"
-               "7.Quit the system\n");
+               "7.Rearrange the items\t\t8.Quit the system\n");
         char operator;
         scanf("%c", &operator);
         fflush(stdin);
-        if ((operator> '7') || (operator<'1'))
+        if ((operator> '8') || (operator<'1'))
         {
             printf("Input wrong!\n");
             continue;
         }
-        else if (operator== '7')
+        else if (operator== '8')
         {
             printf("Saving the data.\n");
             Store_AllData_Into_CSVFile();
