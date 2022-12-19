@@ -716,7 +716,7 @@ void Convert_List_To_Array(Information_Struct Information_Array[], Information_S
 }
 
 // 将结构体数组转化为链表, 传入参数为数组地址、数组成员数量、是否需要反向连接
-void Convert_Array_To_List(Information_Struct Information_Array[], int memberCNT, int ToConnectInverse)
+void Convert_Array_To_List(Information_Struct Information_Array[], int memberCNT)
 {
     if (!Information_Array)
         return;
@@ -727,7 +727,6 @@ void Convert_Array_To_List(Information_Struct Information_Array[], int memberCNT
     Information_Struct *TempNode;
     for (int index = 0; index < memberCNT; ++index)
     {
-        printf("%llu\n", Information_Array[index].ID);
         // 通过数组成员定位链表实际地址
         TempNode = (Information_Struct *)Information_Array[index].List.next->prev;
         if (!index)
@@ -742,20 +741,10 @@ void Convert_Array_To_List(Information_Struct Information_Array[], int memberCNT
     }
     // 单次循环结束, 反向重新用 prev 构建出双向链表
     TempNode = (Information_Struct *)Start_Item;
-    for (int index = 0; index < memberCNT; ++index)
+    for (int index = 0; index <= memberCNT; ++index)
     {
         TempNode->List.next->prev = (list_t *)TempNode;
         TempNode = (Information_Struct *)TempNode->List.next;
-        // 如果需要反向连接, 可以在这里将循环链表的前后交换
-        if (ToConnectInverse)
-        {
-            list_t *temp = TempNode->List.next;
-            TempNode->List.next = TempNode->List.prev;
-            TempNode->List.prev = temp;
-            // 如果是第一次运行, 就修改一下起始节点, 注意这里方向已经被调换完毕
-            if (!index)
-                Start_Item = TempNode->List.next;
-        }
     }
 }
 
@@ -766,59 +755,123 @@ typedef enum
 } Arrangement_Method_Enum;                                            // 排序方式枚举
 Arrangement_Method_Enum Arrangement_Method_Now = From_small_to_large; // 当前使用的排序方式
 
+bool Compare_Inverse = false; // 进行反向比较
 // 排序算法中需要使用到的姓名比较函数
 static int Compare_Names(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
     return strcmp(A->Name.Name, B->Name.Name);
 }
 // 排序算法中需要使用到的姓名比较函数
 static int Compare_ID(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
     if (A->ID == B->ID)
         return 0;
     else if (A->ID > B->ID)
-        return -1;
-    else
         return 1;
+    else
+        return -1;
 }
 // 排序算法中需要使用到的性别比较函数
 static int Compare_Gender(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
     return ((int)B->Gender - (int)A->Gender);
 }
 // 排序算法中比较语文成绩的函数
 static int Compare_ChineseScores(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
-    return ((int)B->Scores.Chinese - (int)A->Scores.Chinese);
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
+    return ((int)A->Scores.Chinese - (int)B->Scores.Chinese);
 }
 // 排序算法中比较数学成绩的函数
 static int Compare_MathScores(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
-    return ((int)B->Scores.Math - (int)A->Scores.Math);
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
+    return ((int)A->Scores.Math - (int)B->Scores.Math);
 }
 // 排序算法中比较英语成绩的函数
 static int Compare_EnglishScores(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
-    return ((int)B->Scores.English - (int)A->Scores.English);
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
+    return ((int)A->Scores.English - (int)B->Scores.English);
 }
 // 排序算法中比较总成绩的函数
 static int Compare_TotalScores(const void *a, const void *b)
 {
-    Information_Struct *A = (Information_Struct *)a;
-    Information_Struct *B = (Information_Struct *)b;
-    return ((int)B->Scores.TotalScores - (int)A->Scores.TotalScores);
+    Information_Struct *A, *B;
+    if (Compare_Inverse)
+    {
+        A = (Information_Struct *)b;
+        B = (Information_Struct *)a;
+    }
+    else
+    {
+        A = (Information_Struct *)a;
+        B = (Information_Struct *)b;
+    }
+    return ((int)A->Scores.TotalScores - (int)B->Scores.TotalScores);
 }
 
 // 用于进行比较的函数指针数组
@@ -868,9 +921,13 @@ RESTART_ARRENGEMENT_WAY:
     Information_Struct *Information_Array = (Information_Struct *)malloc(items_cnt * sizeof(Information_Struct));
     Convert_List_To_Array(Information_Array, (Information_Struct *)Start_Item, items_cnt);
     // 进行排序
+    if (Arrangement_Method_Now == From_small_to_large)
+        Compare_Inverse = false;
+    else
+        Compare_Inverse = true;
     qsort((void *)Information_Array, items_cnt, sizeof(Information_Struct), CompareFcn[operator1 - '1']);
     // 将结构体数组重组为链表
-    Convert_Array_To_List(Information_Array, items_cnt, Arrangement_Method_Now);
+    Convert_Array_To_List(Information_Array, items_cnt);
     free(Information_Array);
     Information_Array = NULL;
     printf("Arrange successfully!\n");
