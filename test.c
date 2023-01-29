@@ -1,37 +1,32 @@
 #include <stdio.h>
 
-int mySqrt(int x)
+int main(void)
 {
-    if (0 == x)
-        return 0;
-    if (x < 4)
-        return 1;
-    if (x < 9)
-        return 2;
-    if (x < 16)
-        return 3;
-    if (x < 25)
-        return 4;
-    if (x < 36)
-        return 5;
+    char Uppercase;
+    int index;
 
-    int x0 = x / 6, last = 0;
-    while (!((x0 - x / x0 <= 0) && (x0 + 1 - x / (x0 + 1) > 0)))
+    printf("Uppercase: ");
+    scanf("%c", &Uppercase);
+    if (Uppercase != 'y' && Uppercase != 'n')
     {
-        x0 = (int)(x0 * 0.5f + x * 0.5f / x0);
-        if (last == x0)
-            break;
-        else
-            last = x0;
+        printf("You need to enter 'y' or 'n'\n");
+        printf("Exiting the program with error code 1\n");
+        return 1;
     }
-    while (x0 - x / x0 > 0)
-        x0 -= 1;
-    return x0;
-}
+    printf("Index: ");
+    scanf("%d", &index);
+    if (index < 1 || index > 26)
+    {
+        printf("You need to enter a number between 1 and 26 inclusive\n");
+        printf("Exiting the program with error code 2\n");
+        return 2;
+    }
 
-int main(int argc, char *argv[])
-{
-    printf("%d\n", mySqrt(2147395599));
-    getchar();
+    if (Uppercase == 'y')
+        printf("The letter is %c\n", 'A' + index - 1);
+
+    if (Uppercase == 'n')
+        printf("The letter is %c\n", 'a' + index - 1);
+
     return 0;
 }
