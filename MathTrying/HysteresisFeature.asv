@@ -27,10 +27,13 @@ end
 suptitle('正弦测试信号下滞环特性的输入输出曲线');
 figure(2);
 for index = 1:length(A)
-    subplot(2,2,index);plot(y(index,:), out(index,:));
-    xlabel('输入');ylabel('输出');xlim([-45 45]);ylim([-45 45]);
+    subplot(2,2,index);plot(t,y(index,:),t,out(index,:));
+    ylim([-45 45]);legend('输入', '输出');
 end
-suptitle('滞环特性的输入输出关系');
+plot(y(1,:), out(1,:), 'r-', 'Linewidth', 2);hold on;
+plot(y(2,:), out(2,:), 'g-', 'Linewidth', 2);hold on;
+plot(y(3,:), out(3,:), 'b-', 'Linewidth', 2);hold off;
+title('滞环特性的输入输出关系');
 
 
 % ADDME: This function could simulate system with hysteresis feature
