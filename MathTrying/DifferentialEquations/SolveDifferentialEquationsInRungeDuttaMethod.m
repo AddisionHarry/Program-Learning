@@ -1,9 +1,12 @@
 % 使用 input 输入参数设定
 r = input("输入 R = \n");
+% 各个环节的参数
 P = input('传递函数 P = \n');
+% 三个连接矩阵
 W = input('W = \n');
 W0 = input('W0 = \n');
 Wc = input('Wc = \n');
+% 龙格库塔参数
 Tf = input('输入仿真时间 Tf = \n');
 h = input('输入计算步长 h = \n');
 % 构造对角矩阵
