@@ -1,7 +1,7 @@
 clear all;close all;
 % Create tranfer function.
 s = tf('s');
-Gopen = 4*6.25*(s+0.5)*(s+0.1)/(s*(s+0.5)*(s+5)*(s+0.01));
+Gopen =tf(4531,[0.0194 1 0]);
 
 % Am --- Ampitude margin
 % Pm --- Phase margin
