@@ -20,3 +20,5 @@ test.exe
 .venv
 *.asv
 test.nb
+test.py
+test.*
