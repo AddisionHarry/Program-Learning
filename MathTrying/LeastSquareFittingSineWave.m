@@ -1,15 +1,17 @@
 clear all;close all;
-% 实验参数
-CurveParam_A = 6;               % 正弦幅值
-CurveParam_W = 9;               % 正弦角频率
-CurveParam_InitPhase = 2*pi/3;  % 正弦初相位
-CurveParam_DC = -2;             % 直流分量
-NoiseVariance = 1.5;            % 观测噪声方差
-InitParam = [20, 5, -pi, 3];    % 给程序指定的初始值, 顺序A,w,phi,c
-lb = [5, 5, -pi, -4];           % 给程序指定的参数下限, 顺序A,w,phi,c
-ub = [20, 10, pi, 4];           % 给程序指定的参数上限, 顺序A,w,phi,c
+% 实验参数 
+CurveParam_A = 0.99;                   % 正弦幅值
+CurveParam_W = 1.884;                  % 正弦角频率
+CurveParam_InitPhase = 2*pi/3;         % 正弦初相位
+CurveParam_DC = 2.090 - CurveParam_A;  % 直流分量
+NoiseVariance = 0.3;                   % 观测噪声方差
+InitParam = [0.780, 2.000, -pi, 1];    % 给程序指定的初始值, 顺序A,w,phi,c
+lb = [0.770, 1.85, -pi, 1.0];          % 给程序指定的参数下限, 顺序A,w,phi,c
+ub = [1.055, 2.10, pi, 1.2];           % 给程序指定的参数上限, 顺序A,w,phi,c
+GivenParamLimit = 1;                   % 是否给最小二乘程序指定参数约束
 
 experiment_index = 2; % 输入 1、2 或者 3, 本文件三个实验同时只实现其中一个
+RealParam = [CurveParam_A, CurveParam_W, CurveParam_InitPhase, CurveParam_DC];
 figureindex = 1;
 if experiment_index == 1
     % 做六次全局拟合实验,效果不好，怀疑是选择的点数、观测周期以及初值不合理
@@ -25,10 +27,14 @@ if experiment_index == 1
         % 在原始数据上叠加噪声得到观测到的曲线
         ObserveData = IdealCurve + NoiseVariance * randn(size(IdealCurve));
         subplot(3,2,2);plot(t, ObserveData);title('输入的实际被观测曲线');
-        % 使用高斯-牛顿法做非线性最小二乘法拟合参数
+        % 使用非线性最小二乘法拟合参数
         error = @(Param) Param(1) * sin(Param(2) * t + Param(3)) + ...
             Param(4) - ObserveData;
-        Param = lsqnonlin(error, InitParam, lb, ub);
+        if GivenParamLimit == 1
+            Param = lsqnonlin(error, InitParam, lb, ub);
+        else
+            Param = lsqnonlin(error, InitParam);
+        end
         disp(Param);
         Curve = Param(1,1) * sin(Param(1,2) * t + Param(1,3)) + Param(1,4);
         subplot(3,2,3);plot(t,Curve,t,ObserveData,t,IdealCurve);
@@ -58,7 +64,7 @@ elseif experiment_index == 2
     % 做一次随时间增长的逐次拟合
     Time = 15;           % 观测总时长
     SamplePoints = 1500; % 总采样点数
-    StartPoints = 65;    % 开始拟合的点数位置
+    StartPoints = 100;   % 开始拟合的点数位置
     % 生成观测曲线
     t = 0 : Time / SamplePoints : Time;
     IdealCurve = CurveParam_A * sin(CurveParam_W * t + ...
@@ -84,9 +90,25 @@ elseif experiment_index == 2
             Param(4) - tempObserveData;
         % 上一次观测的参数结果可以作为下一次的初始值
         if iteration == StartPoints
-            Param = lsqnonlin(error, InitParam, lb, ub);
+            if GivenParamLimit == 1
+                Param = lsqnonlin(error, InitParam, lb, ub);
+            else
+                Param = lsqnonlin(error, InitParam);
+            end
         else
-            Param = lsqnonlin(error, Param, lb, ub);
+            if GivenParamLimit == 1
+                Param = lsqnonlin(error, Param, lb, ub);
+            else
+                % 对上一次的数据做限幅
+                for index = 1 : 4
+                    if Param(1, index) < lb(index)
+                        Param(1, index) = lb(index);
+                    elseif Param(1, index) > ub(index)
+                        Param(1, index) = ub(index);
+                    end
+                end
+                Param = lsqnonlin(error, Param);
+            end
         end
         % 相位角的角度限制允许跨圈
         lb(1, 3) = Param(1, 3) - pi;ub(1, 3) = Param(1, 3) + pi;
@@ -97,7 +119,8 @@ elseif experiment_index == 2
                 NextTime + Param(1, 3)) + Param(1, 4);
         end
         % 输出 记录本次观测的参数
-        disp(Param);
+        fprintf('Fitted Param:\n');disp(Param);
+        fprintf('Real Param:\n');disp(RealParam);
         FittedParam(iteration, :) = Param;
     end
     % 绘制最终的拟合效果
@@ -131,15 +154,12 @@ elseif experiment_index == 3
     % 尝试观测并拟合积分
     Time = 15;           % 观测总时长
     SamplePoints = 1500; % 总采样点数
-    StartPoints = 65;    % 开始拟合的点数位置
+    StartPoints = 100;   % 开始拟合的点数位置
     % 生成观测曲线
     t = 0 : Time / SamplePoints : Time;
-    IdealCurve = zeros(1, length(t));
-    for index = 2 : length(IdealCurve)
-        IdealCurve(1, index) = IdealCurve(1, index - 1) + ...
-            Time / SamplePoints * (CurveParam_A * sin(CurveParam_W * ...
-            t(1, index - 1) + CurveParam_InitPhase) + CurveParam_DC);
-    end
+    IdealCurve = - CurveParam_A / CurveParam_W * ...
+        cos(CurveParam_W * t + CurveParam_InitPhase) + ...
+        CurveParam_DC * t;
     ObserveCurve = IdealCurve + NoiseVariance * randn(size(IdealCurve));
     figure(figureindex);figureindex = figureindex + 1;
     plot(t,ObserveCurve,'LineWidth',1);hold on;
@@ -157,13 +177,29 @@ elseif experiment_index == 3
         tempt = t(1, 1 : iteration);
         % 使用观测到的数据做非线性最小二乘拟合
         tempObserveData = ObserveCurve(1, 1 : iteration);
-        error = @(Param) -Param(1) / Param(2) * sin(Param(2) * tempt + ...
+        error = @(Param) -Param(1) / Param(2) * cos(Param(2) * tempt + ...
             Param(3)) + Param(4) * tempt - tempObserveData;
         % 上一次观测的参数结果可以作为下一次的初始值
         if iteration == StartPoints
-            Param = lsqnonlin(error, InitParam, lb, ub);
+            if GivenParamLimit == 1
+                Param = lsqnonlin(error, InitParam, lb, ub);
+            else
+                Param = lsqnonlin(error, InitParam);
+            end
         else
-            Param = lsqnonlin(error, Param, lb, ub);
+            if GivenParamLimit == 1
+                Param = lsqnonlin(error, Param, lb, ub);
+            else
+                % 对上一次的数据做限幅
+                for index = 1 : 4
+                    if Param(1, index) < lb(index)
+                        Param(1, index) = lb(index);
+                    elseif Param(1, index) > ub(index)
+                        Param(1, index) = ub(index);
+                    end
+                end
+                Param = lsqnonlin(error, Param);
+            end
         end
         % 相位角的角度限制允许跨圈
         lb(1, 3) = Param(1, 3) - pi;ub(1, 3) = Param(1, 3) + pi;
@@ -171,11 +207,12 @@ elseif experiment_index == 3
         if iteration ~= length(t)
             NextTime = iteration / SamplePoints * Time;
             FitCurve(1, iteration + 1) = -Param(1, 1) / Param(1, 2) * ...
-                sin(Param(1, 2) * NextTime + Param(1, 3)) + Param(1, 4) * ...
+                cos(Param(1, 2) * NextTime + Param(1, 3)) + Param(1, 4) * ...
                 NextTime;
         end
         % 输出 记录本次观测的参数
-        disp(Param);
+        fprintf('Fitted Param:\n');disp(Param);
+        fprintf('Real Param:\n');disp(RealParam);
         FittedParam(iteration, :) = Param;
     end
     % 绘制最终的拟合效果
@@ -185,7 +222,7 @@ elseif experiment_index == 3
     legend('Fitted','Real');title('实际曲线和拟合曲线');
     % 绘制误差曲线的变化
     figure(figureindex);figureindex = figureindex + 1;
-    plot(t,FitCurve - IdealCurve);title('拟合误差');
+    plot(t,FitCurve - IdealCurve);title('拟合残差');
     % 拟合结果和期望结果分别微分以后作比较
     figure(figureindex);figureindex = figureindex + 1;
     DerivativedFitCurve = Param(1, 1) * sin(Param(1, 2) * ...
