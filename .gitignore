@@ -19,3 +19,4 @@ test.exe
 .conda
 .venv
 *.asv
+test.nb
