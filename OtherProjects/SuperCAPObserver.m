@@ -1,4 +1,7 @@
 clear all;close all;
+% 本文件的其他说明可以参看项目文档链接如下:
+% https://www.yuque.com/addisionharry/robotengineering/pwexg4bmt4rhot92
+
 t = 0:1/12000:30;                    % 仿真时间
 C_real = 9;                          % 实际电容容值 9F
 r_real = 0.3;                        % 实际电容组内阻 0.3 欧姆
