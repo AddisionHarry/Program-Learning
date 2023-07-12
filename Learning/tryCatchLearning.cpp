@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         }
         std::cout << "str[100] = " << ch1 << std::endl;
     }
-    catch (const char *&e)
+    catch (const char *e)
     {
         std::cout << "[1]out of bound! from Exception const char*" << std::endl;
     }
