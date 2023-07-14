@@ -33,6 +33,26 @@ int main(int argc, char *argv[])
     std::cout << std::endl
               << std::endl;
 
+    // 跳出 for_each 循环
+    auto ExitCycle = [nums](int i)
+    {
+        if (i == nums[N / 2])
+            return;
+        else if (i == nums[N - 1])
+            throw "end-loop";
+        std::cout
+            << i << ' ';
+    };
+    try
+    {
+        std::for_each(nums, nums + N, ExitCycle);
+    }
+    catch (const char *)
+    {
+        std::cout << "\nexit the cycle." << std::endl;
+    }
+    std::cout << std::endl;
+
     /************* for 循环变种 *************/
     for (auto i : nums)
         Print(i); // 注意这种方式出来的 i 已经是寻址以后的结果了
