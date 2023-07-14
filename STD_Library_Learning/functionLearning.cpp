@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 
     // 包装仿函数(函数对象)
     A a;
+    a();
     func = a;
     func();
     std::cout << std::endl;
